@@ -54,6 +54,7 @@ RUN set -x \
     && "${STEAMCMD}" +force_install_dir /home/steam/steamworks_sdk +login anonymous \
         +@sSteamCmdForcePlatformType windows +app_update 1007 +quit \
     && cp /home/steam/steamworks_sdk/*64.dll "${STEAMAPPDIR}"/ \
+    && "${STEAMCMD}" +force_install_dir "${STEAMAPPDIR}" +login anonymous +@sSteamCmdForcePlatformType windows +app_update "${STEAMAPPID}" +quit \
     && apt-get remove --purge -y \
         wget \
         software-properties-common \
