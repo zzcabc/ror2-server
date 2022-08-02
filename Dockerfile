@@ -3,8 +3,6 @@
 ###########################################################
 FROM steamcmd/steamcmd:ubuntu-20
 
-LABEL authors="Fabio Nicolini <fabionicolini48@gmail.com>, Manuel Rota <manuel.rota@protonmail.ch>, Antonio Vivace <antonio@avivace.com>"
-
 ARG WINE_REL="stable"
 ARG WINE_VER="7.0.0.0~focal-1"
 
@@ -59,6 +57,8 @@ RUN set -x \
         wget \
         software-properties-common \
         gnupg2 \
+    && ln -fs /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+    && echo "Asia/Shanghai" > /etc/timezone \
     && apt-get clean autoclean \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*

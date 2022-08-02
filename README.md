@@ -1,69 +1,94 @@
 <h1> <img src="https://i.imgur.com/UIQSMEs.png" height=45> Risk of Rain 2 dockerized server </h1>
 
-[![Docker Pulls](https://img.shields.io/docker/pulls/avivace/ror2server?style=flat-square)](https://hub.docker.com/r/avivace/ror2server)
-
-Host your Risk of Rain 2 dedicated server anywhere using Docker. Powered by Wine and the X virtual framebuffer to seamlessy run on Linux machines.
-
-[Guide on Steam](https://steamcommunity.com/sharedfiles/filedetails/?id=2077564253).
+[![Docker Pulls](https://img.shields.io/docker/pulls/zzcabc/ror2server?style=flat-square)](https://hub.docker.com/r/zzcabc/ror2server)
 
 
-## Quickstart
+本项目Fork 自 [avivace/ror2server](https://github.com/avivace/ror2-server)
 
-You need [Docker](https://docs.docker.com/get-docker/) installed. On Debian systems, you can use the [bootstrap_debian.sh](https://github.com/avivace/ror2-server/blob/master/boostrap_debian.sh) script to set up Docker and some other dependencies.
+因为原项目下载Risk of Rain 2 Server过于缓慢，本项目构建的时候自动下载并添加至容器内部，依旧每次启动更新
 
-Run the Docker container with:
+由于Risk of Rain 2 Server 原因，本项目只能在AMD64架构的CPU上面运行
 
+
+运行命令
 ```bash
-docker run -p 27015:27015/udp avivace/ror2server:latest
+docker run -d \
+    --name ror2server \
+    -p 27015:27015/udp \
+    zzcabc/ror2server:latest
 ```
 
-Players need to start Risk of Rain 2, open the console pressing <kbd>CTRL</kbd> + <kbd>ALT</kbd> + <kbd>\`</kbd> and insert this command:
+在《Risk of Rain 2》中 使用<kbd>CTRL</kbd> + <kbd>ALT</kbd> + <kbd>\`</kbd> 启动控制台，并输入`connect "<SERVER_IP>:27015";` 即可连接服务器
 
+
+如果你想使用其他端口比如**25000**和密码**helloworld**
+
+可以使用下面命令
+```sh
+docker run -d \
+    -p 25000:25000/udp \
+    --name ror2server \
+    -e R2_SV_PORT=25000 \
+    -e R2_PSW='helloworld' \
+    zzcabc/ror2server:latest
 ```
-connect "<SERVER_IP>:27015";
-```
+在控制台中输入下面代码即可加入`cl_password "helloworld"; connect "<SERVER_IP>:25000";`
 
-Replace `SERVER_IP` with the public IP of the server running the Docker Image.
+你可以使用环境变量对 Risk of Rain 2 Server 进行配置：
 
-By default, the server has no password and runs on UDP port 27015. Make sure you have crossplay disabled before joining.
-
-## Customize configuration
-
-If you want to start the server on port **25000** with password **hello**:
-
-```
-docker run -p 25000:25000/udp -e R2_SV_PORT=25000 -e R2_PSW='hello' avivace/ror2server:latest
-```
-
-Players will then join with:
-
-```
-cl_password "hello"; connect "<SERVER_IP>:25000";
-```
-
-You can pass these additional environment variables to customise your server configuration:
-
-- `R2_PLAYERS`, the maximum number of players, default is 4;
-- `R2_HEARTBEAT`, set to `1` to **advertise to the master server and list your server** in the internal server browser. If you enable this, add `-p 27016:27016/udp` to your Docker command;
-- `R2_HOSTNAME`, the name that will appear in the server browser;
-- `R2_PSW`, the password someone must provide to join this server;
-- `R2_ENABLE_MODS`, set to `1` to enable mod support (given you mounted the mod folders as described [below](#mod-support));
-- `R2_QUERY_PORT`, the listen port for the Steamworks connection, needed to list the server in the game browser on a alternate port, you need to add `-p <PORT>:<PORT>/udp` to your Docker command;
-- `R2_SV_PORT`, the listen port for the game server, needed to list the server in the game browser on a alternate port, you also need to add `-p <PORT>:<PORT>/udp` to your Docker command.
-- `R2_TAGS`, the tags the server will have in the server browser.
-- `R2_GAMEMODE`, the type of gamemode for the run, defaulting to `ClassicRun`. Supported options:
+- `R2_PLAYERS`: 最大支持玩家数量， 默认 `4`， 最高 `16`;
+- `R2_HEARTBEAT`: 设置为 `1`， 向《Risk of Rain 2》的大厅中添加你的服务器。 如果你设置此配置， 记得在Docker命令中添加 `-p 27016:27016/udp` ;
+- `R2_HOSTNAME`: 设置大厅中服务器的名称，默认 `Risk of Rain 2 dockerized server` ;
+- `R2_PSW`: 加入服务器的密码，默认无密码;
+- `R2_ENABLE_MODS`: 设置为 `1` 启动对Mod的支持 (请添加Mod的相关文件及文件夹 [Mod支持](#Mod支持));
+- `R2_QUERY_PORT`: 用于 Steamworks 连接的监听端口，记得在Docker命令中添加 `-p <PORT>:<PORT>/udp`，默认`27015`;
+- `R2_SV_PORT`: 服务器的监听端口，大厅中显示的端口，记得在Docker命令中添加 `-p <PORT>:<PORT>/udp`，默认`27016`;
+- `R2_TAGS`: 服务器将在服务器浏览器中具有的标签.
+- `R2_GAMEMODE`: 运行的游戏模式类型，默认为`ClassicRun`. 支持下面选项:
     - `ClassicRun` (Standard)
     - `InfiniteTowerRun` (Simulacrum)
 
-You shouldn't need to change `R2_QUERY_PORT` and `R2_SV_PORT` if you are not planning on hosting more server instances on the same machine/IP.
+如果不打算在同一个IP或者主机上面运行多个服务器，尽量不要改动`R2_QUERY_PORT` 和 `R2_SV_PORT`。
 
-Append one or more `-e VARIABLENAME=VALUE` to your Docker command to set environment variables.
+一键运行命令
 
-To check if your server is correctly getting announced to the Steamworks network, you can use this API call:
+```sh
+docker run -d \
+    --name ror2server \
+    -p 27015:27015 \
+    -p 27016:27016 \
+    -e R2_HEARTBEAT=1 \
+    -e R2_HOSTNAME='Risk of Rain 2 dockerized server' \
+    -e R2_PSW='password' \
+    zzcabc/ror2server:latest
+```
+
+要检查服务器是否正确地发布到 Steamworks 网络，可以使用此 API 调用:
 
 ```bash
 curl http://api.steampowered.com/ISteamApps/GetServersAtAddress/v0001/?format=json&addr=<IP_ADDRESS>
 ```
+
+## Mod支持
+
+要安装和启用 mods 服务器端，需要一个目录，其中包含:
+
+- 带有所需模组的 **BepInEx**;
+- `doorstop_config.ini` 和 `winhttp.dll` 文件配置**BepInEx** 一起使用
+
+如果你的mod文件夹是 `/path/to/directory`, 使用下面的命令启动:
+
+```bash
+docker run -d \
+    -p 27015:27015/udp \
+    --name ror2server \
+    -v /path/to/directory:/root/ror2ds-mods \
+    -e R2_ENABLE_MODS=1 \
+    zzcabc/ror2server:latest
+```
+
+注意：有一些Mod需要在客户端安装
+
 ## Known Issues
 
 Be aware that this version suffers from some [known issues](https://github.com/avivace/ror2-server/issues?q=is%3Aissue+is%3Aopen+label%3Abug), probably caused by the executable not running natively on Windows. You should probably [ask the developers](https://twitter.com/riskofrain) for a proper Linux build.
@@ -71,25 +96,10 @@ Be aware that this version suffers from some [known issues](https://github.com/a
 Since the RoR2 Server will be downloaded each time the docker container is started, there could be breaking changes which require more up to date versions of wine in order to work correctly. In this case you can try forcing the installation of bleeding-edge wine versions by running:
 ```bash
 # wine-devel
-docker run ${your_parameters} -e WINE_REPLACE_REL="devel" avivace/ror2server:latest
+docker run ${your_parameters} -e WINE_REPLACE_REL="devel" zzcabc/ror2server:latest
 # wine-staging
-docker run ${your_parameters} -e WINE_REPLACE_REL="staging" avivace/ror2server:latest
+docker run ${your_parameters} -e WINE_REPLACE_REL="staging" zzcabc/ror2server:latest
 ```
-
-## Mod support
-
-To install and enable mods server side, you'll need a directory containing:
-
-- The **BepInEx** folder with the desired mods;
-- The `doorstop_config.ini` and `winhttp.dll` files, both shipped with the BepInEx version you intend to use.
-
-Supposing your mod directory is in `/path/to/directory`, you can start your server as follows:
-
-```bash
-docker run -p 27015:27015/udp -v /path/to/directory:/root/ror2ds-mods -e R2_ENABLE_MODS=1 avivace/ror2server:latest
-```
-
-Beware that some mods requires the client to also have them installed.
 
 ## FAQ
 
