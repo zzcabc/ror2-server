@@ -5,7 +5,7 @@
 
 本项目Fork 自 [avivace/ror2server](https://github.com/avivace/ror2-server)
 
-因为原项目下载Risk of Rain 2 Server过于缓慢，本项目构建的时候自动下载并添加至容器内部，依旧每次启动更新
+因为原项目下载Risk of Rain 2 Server过于缓慢，本项目构建的时候自动下载并添加至容器内部，但是重启容器不会更新
 
 由于Risk of Rain 2 Server 原因，本项目只能在AMD64架构的CPU上面运行
 
